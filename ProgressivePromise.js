@@ -51,3 +51,4 @@ function ProgressivePromise(fn) {
 
 	return promise;
 }
+window.ProgressivePromise = ProgressivePromise;
