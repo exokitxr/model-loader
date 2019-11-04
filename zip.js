@@ -26,6 +26,8 @@
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+const basePath = import.meta.url.replace(/[^\/]*$/, '');
+
 (function(obj) {
 	"use strict";
 
@@ -870,8 +872,8 @@
 	}
 
 	var DEFAULT_WORKER_SCRIPTS = {
-		deflater: ['z-worker.js', 'deflate.js'],
-		inflater: ['z-worker.js', 'inflate.js']
+		deflater: [basePath + 'z-worker.js', basePath + 'deflate.js'],
+		inflater: [basePath + 'z-worker.js', basePath + 'inflate.js']
 	};
 	function createWorker(type, callback, onerror) {
 		if (obj.zip.workerScripts !== null && obj.zip.workerScriptsPath !== null) {
