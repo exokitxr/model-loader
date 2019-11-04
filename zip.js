@@ -875,7 +875,7 @@ const basePath = import.meta.url.replace(/[^\/]*$/, '');
 		deflater: [basePath + 'z-worker.js', basePath + 'deflate.js'],
 		inflater: [basePath + 'z-worker.js', basePath + 'inflate.js']
 	};
-	function createWorker(type, callback, onerror) {
+	async function createWorker(type, callback, onerror) {
 		if (obj.zip.workerScripts !== null && obj.zip.workerScriptsPath !== null) {
 			onerror(new Error('Either zip.workerScripts or zip.workerScriptsPath may be set, not both.'));
 			return;
@@ -892,10 +892,14 @@ const basePath = import.meta.url.replace(/[^\/]*$/, '');
 			scripts = DEFAULT_WORKER_SCRIPTS[type].slice(0);
 			scripts[0] = (obj.zip.workerScriptsPath || '') + scripts[0];
 		}
-		var worker = new Worker(scripts[0]);
+		const _readScript = async (src, text) => {
+			const res = await fetch(src);
+	  	return await (text ? res.text() : res.blob());
+		};
+		var worker = new Worker(URL.createObjectURL(await _readScript(scripts[0], false)));
 		// record total consumed time by inflater/deflater/crc32 in this worker
 		worker.codecTime = worker.crcTime = 0;
-		worker.postMessage({ type: 'importScripts', scripts: scripts.slice(1) });
+		worker.postMessage({ type: 'importScripts', scripts: await Promise.all(scripts.slice(1).map(src => _readScript(src, true))) });
 		worker.addEventListener('message', onmessage);
 		function onmessage(ev) {
 			var msg = ev.data;
