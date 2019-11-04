@@ -59,6 +59,7 @@ function untar(arrayBuffer) {
 		worker.postMessage({ type: "extract", buffer: arrayBuffer }, [arrayBuffer]);
 	});
 }
+window.untar = untar;
 
 var decoratedFileProps = {
 	blob: {
