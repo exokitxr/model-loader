@@ -963,4 +963,4 @@
 		workerScripts : null,
 	};
 
-})(this);
+})(window);
