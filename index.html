@@ -371,6 +371,11 @@ renderer.setAnimationLoop(animate);
   const model = await ModelLoader.loadModelUrl(url);
   _setLocalModel(model);
 })();
+
+window.addEventListener('resize', e => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
     </script>
   </body>
 </html>
