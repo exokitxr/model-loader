@@ -892,14 +892,18 @@ const basePath = import.meta.url.replace(/[^\/]*$/, '');
 			scripts = DEFAULT_WORKER_SCRIPTS[type].slice(0);
 			scripts[0] = (obj.zip.workerScriptsPath || '') + scripts[0];
 		}
-		const _readScript = async (src, text) => {
+		const _readBlob = async (src, text) => {
 			const res = await fetch(src);
-	  	return await (text ? res.text() : res.blob());
+	  	return await res.blob();
 		};
-		var worker = new Worker(URL.createObjectURL(await _readScript(scripts[0], false)));
+		const _readText = async (src, text) => {
+			const res = await fetch(src);
+	  	return await res.text();
+		};
+		var worker = new Worker(URL.createObjectURL(await _readBlob(scripts[0])));
 		// record total consumed time by inflater/deflater/crc32 in this worker
 		worker.codecTime = worker.crcTime = 0;
-		worker.postMessage({ type: 'importScripts', scripts: await Promise.all(scripts.slice(1).map(src => _readScript(src, true))) });
+		worker.postMessage({ type: 'importScripts', scripts: await Promise.all(scripts.slice(1).map(src => _readText(src))) });
 		worker.addEventListener('message', onmessage);
 		function onmessage(ev) {
 			var msg = ev.data;

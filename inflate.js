@@ -2152,4 +2152,4 @@
 	// 'zip' may not be defined in z-worker and some tests
 	var env = global.zip || global;
 	env.Inflater = env._jzlib_Inflater = Inflater;
-})(this);
+})(self);
