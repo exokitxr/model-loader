@@ -356,6 +356,7 @@ const _setLocalModel = object => {
   model = object;
   _patchModel(model);
   scene.add(model);
+  window.model = model;
 };
 
 function animate(timestamp, frame, referenceSpace) {
