@@ -1,6 +1,7 @@
 /* globals Blob: false, Promise: false, console: false, Worker: false, ProgressivePromise: false */
 
-var workerScriptUri = 'untar-worker.js'; // Included at compile time
+const basePath = import.meta.url.replace(/[^\/]*$/, '');
+var workerScriptUri = basePath + 'untar-worker.js'; // Included at compile time
 
 var global = window || this;
 
@@ -18,8 +19,12 @@ function untar(arrayBuffer) {
 		throw new Error("Worker implementation is not available in this environment.");
 	}
 
-	return new ProgressivePromise(function(resolve, reject, progress) {
-		var worker = new Worker(workerScriptUri);
+	return new ProgressivePromise(async function(resolve, reject, progress) {
+		const _readBlob = async (src, text) => {
+			const res = await fetch(src);
+	  	return await res.blob();
+		};
+		var worker = new Worker(URL.createObjectURL(await _readBlob(workerScriptUri)));
 
 		var files = [];
 
