@@ -15,7 +15,7 @@ const _getFileType = filename => {
     return 'tgz';
   } else if (/\.(?:zip)$/.test(filename)) {
     return 'zip';
-  } else if (/\.(?:png|jpg)/) {
+  } else if (/\.(?:png|jpe?g)/) {
     return 'img';
   } else {
     return null;
