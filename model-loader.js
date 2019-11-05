@@ -15,6 +15,8 @@ const _getFileType = filename => {
     return 'tgz';
   } else if (/\.(?:zip)$/.test(filename)) {
     return 'zip';
+  } else if (/\.(?:png|jpg)/) {
+    return 'img';
   } else {
     return null;
   }
@@ -170,6 +172,31 @@ const loadModelUrl = async (href, filename = href) => {
       }
     }
     const model = await _loadModelFilesystem(filesystem);
+    return model;
+  } else if (fileType === 'img') {
+    const img = await new Promise((accept, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        accept(img);
+      };
+      img.onerror = reject;
+      img.crossOrigin = 'Anonymous';
+      img.src = href;
+    });
+    const model = await new Promise((accept, reject) => {
+      new THREE.GLTFLoader().load('./minecraft.glb', object => {
+        accept(object.scene);
+      }, xhr => {}, reject);
+    });
+    const texture = new THREE.Texture(img, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.LinearMipmapLinearFilter, THREE.RGBAFormat, THREE.UnsignedByteType, 16, THREE.LinearEncoding);
+    texture.flipY = false;
+    texture.needsUpdate = true;
+    window.texture = texture;
+    model.traverse(o => {
+      if (o.isSkinnedMesh) {
+        o.material.map = texture;
+      }
+    });
     return model;
   } else {
     throw new Error(`unknown file type: ${filename} (${fileType})`);
