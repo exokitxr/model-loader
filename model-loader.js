@@ -6,6 +6,8 @@ import './ProgressivePromise.js';
 import './untar.js';
 import './zip.js';
 
+const basePath = import.meta.url.replace(/[^\/]*$/, '');
+
 const _getFileType = filename => {
   if (/\.(?:gltf|glb|vrm)$/.test(filename)) {
     return 'gltf';
@@ -184,7 +186,7 @@ const loadModelUrl = async (href, filename = href) => {
       img.src = href;
     });
     const model = await new Promise((accept, reject) => {
-      new THREE.GLTFLoader().load('./minecraft.glb', object => {
+      new THREE.GLTFLoader().load(`${basePath}minecraft.glb`, object => {
         accept(object.scene);
       }, xhr => {}, reject);
     });
