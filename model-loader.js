@@ -191,7 +191,6 @@ const loadModelUrl = async (href, filename = href) => {
     const texture = new THREE.Texture(img, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.LinearMipmapLinearFilter, THREE.RGBAFormat, THREE.UnsignedByteType, 16, THREE.LinearEncoding);
     texture.flipY = false;
     texture.needsUpdate = true;
-    window.texture = texture;
     model.scene.traverse(o => {
       if (o.isSkinnedMesh) {
         o.material.map = texture;
