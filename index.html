@@ -356,7 +356,7 @@ const _setLocalModel = object => {
     model = null;
   }
 
-  model = object;
+  model = object.scene;
   _patchModel(model);
   scene.add(model);
   window.model = model;

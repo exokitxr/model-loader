@@ -75,14 +75,14 @@ const _loadModelFilesystem = async filesystem => {
     console.log(`using model file: ${modelFile.pathname}`);
     if (/\.fbx$/.test(modelFile.pathname)) {
       const model = await new Promise((accept, reject) => {
-        new THREE.FBXLoader(manager).load(modelFileUrl, accept, function onprogress() {}, reject);
+        new THREE.FBXLoader(manager).load(modelFileUrl, scene => {
+          accept({scene});
+        }, function onprogress() {}, reject);
       });
       return model;
     } else {
       const model = await new Promise((accept, reject) => {
-        new THREE.GLTFLoader(manager).load(modelFileUrl, object => {
-          accept(object.scene);
-        }, xhr => {}, reject);
+        new THREE.GLTFLoader(manager).load(modelFileUrl, accept, xhr => {}, reject);
       });
       return model;
     }
@@ -102,14 +102,14 @@ const loadModelUrl = async (href, filename = href) => {
   const fileType = _getFileType(filename);
   if (fileType === 'gltf') {
     const model = await new Promise((accept, reject) => {
-      new THREE.GLTFLoader().load(href, object => {
-        accept(object.scene);
-      }, xhr => {}, reject);
+      new THREE.GLTFLoader().load(href, accept, xhr => {}, reject);
     });
     return model;
   } else if (fileType === 'fbx') {
     const model = await new Promise((accept, reject) => {
-      new THREE.FBXLoader().load(href, accept, xhr => {}, reject);
+      new THREE.FBXLoader().load(href, scene => {
+        accept({scene});
+      }, xhr => {}, reject);
     });
     return model;
   } else if (fileType === 'zip') {
@@ -186,9 +186,7 @@ const loadModelUrl = async (href, filename = href) => {
       img.src = href;
     });
     const model = await new Promise((accept, reject) => {
-      new THREE.GLTFLoader().load(`${basePath}minecraft.glb`, object => {
-        accept(object.scene);
-      }, xhr => {}, reject);
+      new THREE.GLTFLoader().load(`${basePath}minecraft.glb`, accept, xhr => {}, reject);
     });
     const texture = new THREE.Texture(img, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.NearestFilter, THREE.LinearMipmapLinearFilter, THREE.RGBAFormat, THREE.UnsignedByteType, 16, THREE.LinearEncoding);
     texture.flipY = false;
