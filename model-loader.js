@@ -192,7 +192,7 @@ const loadModelUrl = async (href, filename = href) => {
     texture.flipY = false;
     texture.needsUpdate = true;
     window.texture = texture;
-    model.traverse(o => {
+    model.scene.traverse(o => {
       if (o.isSkinnedMesh) {
         o.material.map = texture;
       }
