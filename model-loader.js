@@ -36,33 +36,6 @@ const _filename2Ext = filename => {
 const _patchModel = model => {
   const saved = THREE.SkeletonUtils.clone(model.scene);
 
-  /* const sceneSkinnedMeshes = [];
-  model.scene.traverse(o => {
-    if (o.isSkinnedMesh) {
-      sceneSkinnedMeshes.push(o);
-    }
-  });
-
-  const savedSkinnedMeshes = [];
-  model.scene.traverse(o => {
-    if (o.isSkinnedMesh) {
-      savedSkinnedMeshes.push(o);
-    }
-  });
-
-  const skeletonCache = new Map();
-  for (let i = 0; i < sceneSkinnedMeshes.length; i++) {
-    const sceneSkinnedMesh = sceneSkinnedMeshes[i];
-    const savedSkinnedMesh = savedSkinnedMeshes[i];
-    let skeletonClone = skeletonCache.get(sceneSkinnedMesh.skeleton);
-    if (!skeletonClone) {
-      skeletonClone = sceneSkinnedMesh.skeleton.clone(true);
-      skeletonCache.set(sceneSkinnedMesh.skeleton, skeletonClone);
-    }
-    savedSkinnedMesh.skeleton = skeletonClone;
-  }
-  model.saved = saved; */
-
   model.export = () => new Promise((accept, reject) => {
     new THREE.GLTFExporter().parse(saved, ab => {
       accept(ab);
