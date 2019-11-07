@@ -268,8 +268,8 @@ const localQuaternion = new THREE.Quaternion();
 const localEuler = new THREE.Euler();
 const localRay = new THREE.Ray(); */
 
-const _patchModel = model => {
-  model.traverse(o => {
+const _patchModel = object => {
+  object.scene.traverse(o => {
     if (o.isMesh) {
       o.frustumCulled = false;
 
@@ -351,15 +351,15 @@ for (let i = 0; i < aAvatars.length; i++) {
 }
 
 let model = null;
-const _setLocalModel = object => {
+const _setLocalModel = newModel => {
   if (model) {
-    scene.remove(model);
+    scene.remove(model.scene);
     model = null;
   }
 
-  model = object.scene;
+  model = newModel;
   _patchModel(model);
-  scene.add(model);
+  scene.add(model.scene);
   window.model = model;
 };
 
