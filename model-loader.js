@@ -87,11 +87,20 @@ const _loadModelFilesystem = async filesystem => {
     const modelFileUrl = modelFile.url;
     console.log(`using model file: ${modelFile.pathname}`);
     if (/\.fbx$/.test(modelFile.pathname)) {
+      let accept, reject;
+      const managerLoadPromise = new Promise((a, r) => {
+        accept = a;
+        reject = r;
+      });
+      manager.onLoad = () => {
+        accept();
+      };
       const model = await new Promise((accept, reject) => {
         new THREE.FBXLoader(manager).load(modelFileUrl, scene => {
           accept({scene});
         }, function onprogress() {}, reject);
       });
+      await managerLoadPromise;
       return model;
     } else {
       const model = await new Promise((accept, reject) => {
@@ -120,11 +129,21 @@ const loadModelUrl = async (href, filename = href) => {
     _patchModel(model);
     return model;
   } else if (fileType === 'fbx') {
+    const manager = new THREE.LoadingManager();
+    let accept, reject;
+    const managerLoadPromise = new Promise((a, r) => {
+      accept = a;
+      reject = r;
+    });
+    manager.onLoad = () => {
+      accept();
+    };
     const model = await new Promise((accept, reject) => {
-      new THREE.FBXLoader().load(href, scene => {
+      new THREE.FBXLoader(manager).load(href, scene => {
         accept({scene});
       }, xhr => {}, reject);
     });
+    await managerLoadPromise;
     _patchModel(model);
     return model;
   } else if (fileType === 'zip') {
