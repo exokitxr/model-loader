@@ -56,27 +56,6 @@ const _patchModel = model => {
   });
 };
 const _loadModelFilesystem = async filesystem => {
-  const manager = new THREE.LoadingManager();
-  manager.setURLModifier(url => {
-    const match = url.match(/([^\/]+)$/);
-    if (match) {
-      const filename = match[1];
-      const file = filesystem.find(file => file.filename === filename);
-      if (file) {
-        url = file.url;
-      } else {
-        const ext = _filename2Ext(filename);
-        if (ext) {
-          const file = filesystem.find(file => file.ext === ext);
-          if (file) {
-            url = file.url;
-          }
-        }
-      }
-    }
-    return url;
-  });
-
   const modelFiles = filesystem.filter(file => /\.(?:fbx|gltf|glb)/.test(file.pathname)).map(file => {
     const pathnamePrefix = file.pathname.replace(/[^\/]+$/, '');
     const numSiblingFiles = filesystem.filter(file => file.pathname.startsWith(pathnamePrefix)).length;
@@ -97,15 +76,30 @@ const _loadModelFilesystem = async filesystem => {
     // console.log('got model file', modelFile);
     const modelFileUrl = modelFile.url;
     console.log(`using model file: ${modelFile.pathname}`);
+
+    const manager = new THREE.LoadingManager();
+    manager.setURLModifier(url => {
+      const match = url.match(/([^\/]+)$/);
+      if (match) {
+        const filename = match[1];
+        const file = filesystem.find(file => file.filename === filename);
+        if (file) {
+          url = file.url;
+        } else {
+          const ext = _filename2Ext(filename);
+          if (ext) {
+            const file = filesystem.find(file => file.ext === ext);
+            if (file) {
+              url = file.url;
+            }
+          }
+        }
+      }
+      return url;
+    });
+    const managerLoadPromise = _makeManagerLoadPromise(manager);
+
     if (/\.fbx$/.test(modelFile.pathname)) {
-      let accept, reject;
-      const managerLoadPromise = new Promise((a, r) => {
-        accept = a;
-        reject = r;
-      });
-      manager.onLoad = () => {
-        accept();
-      };
       const model = await new Promise((accept, reject) => {
         new THREE.FBXLoader(manager).load(modelFileUrl, scene => {
           accept({scene});
@@ -117,6 +111,7 @@ const _loadModelFilesystem = async filesystem => {
       const model = await new Promise((accept, reject) => {
         new THREE.GLTFLoader(manager).load(modelFileUrl, accept, xhr => {}, reject);
       });
+      await managerLoadPromise;
       return model;
     }
   } else {
@@ -131,24 +126,37 @@ const _readAsArrayBuffer = blob => new Promise((accept, reject) => {
   reader.onerror = reject;
   reader.readAsArrayBuffer(blob);
 });
+const _makeManager = () => {
+  const manager = new THREE.LoadingManager();
+  const managerLoadPromise = _makeManagerLoadPromise(manager);
+  return {
+    manager,
+    managerLoadPromise,
+  };
+};
+const _makeManagerLoadPromise = manager => {
+  let accept, reject;
+  const p = new Promise((a, r) => {
+    accept = a;
+    reject = r;
+  });
+  manager.onLoad = () => {
+    accept();
+  };
+  return p;
+};
 const loadModelUrl = async (href, filename = href) => {
   const fileType = _getFileType(filename);
   if (fileType === 'gltf') {
+    const {manager, managerLoadPromise} = _makeManager();
     const model = await new Promise((accept, reject) => {
-      new THREE.GLTFLoader().load(href, accept, xhr => {}, reject);
+      new THREE.GLTFLoader(manager).load(href, accept, xhr => {}, reject);
     });
+    await managerLoadPromise;
     _patchModel(model);
     return model;
   } else if (fileType === 'fbx') {
-    const manager = new THREE.LoadingManager();
-    let accept, reject;
-    const managerLoadPromise = new Promise((a, r) => {
-      accept = a;
-      reject = r;
-    });
-    manager.onLoad = () => {
-      accept();
-    };
+    const {manager, managerLoadPromise} = _makeManager();
     const model = await new Promise((accept, reject) => {
       new THREE.FBXLoader(manager).load(href, scene => {
         accept({scene});
