@@ -251,8 +251,10 @@ input[type=text] {
             <input type="file" id="upload-file-button" style="display: none">
           </label>
         </div>
+        <div class=multibutton>
+          <a class="button first last" id=export-model-button>Export model</a>
+        </div>
       </div>
-
       <div class=iframe-wrapper id=iframe-wrapper></div>
     </div>
     <script type=module>
@@ -374,6 +376,22 @@ renderer.setAnimationLoop(animate);
   const model = await ModelLoader.loadModelUrl(url);
   _setLocalModel(model);
 })();
+
+const exportModelButton = document.getElementById('export-model-button');
+exportModelButton.addEventListener('click', async () => {
+  const ab = await model.export();
+  const b = new Blob([ab], {type: 'model/gltf-binary'});
+  const u = URL.createObjectURL(b);
+
+  const a = document.createElement('a');
+  a.download = 'model.glb';
+  a.href = u;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(u);
+});
 
 window.addEventListener('resize', e => {
   camera.aspect = window.innerWidth / window.innerHeight;
