@@ -1,5 +1,7 @@
 import './GLTFLoader.js';
 import './FBXLoader.js';
+import './GLTFExporter.js';
+import './SkeletonUtils.js';
 import './inflate.min.js';
 import './gunzip.min.js';
 import './ProgressivePromise.js';
@@ -30,6 +32,44 @@ const _pathname2Filename = pathname => {
 const _filename2Ext = filename => {
   const match = filename.match(/\.([^\.]+)$/);
   return match ? match[1] : null;
+};
+const _patchModel = model => {
+  const saved = THREE.SkeletonUtils.clone(model.scene);
+
+  /* const sceneSkinnedMeshes = [];
+  model.scene.traverse(o => {
+    if (o.isSkinnedMesh) {
+      sceneSkinnedMeshes.push(o);
+    }
+  });
+
+  const savedSkinnedMeshes = [];
+  model.scene.traverse(o => {
+    if (o.isSkinnedMesh) {
+      savedSkinnedMeshes.push(o);
+    }
+  });
+
+  const skeletonCache = new Map();
+  for (let i = 0; i < sceneSkinnedMeshes.length; i++) {
+    const sceneSkinnedMesh = sceneSkinnedMeshes[i];
+    const savedSkinnedMesh = savedSkinnedMeshes[i];
+    let skeletonClone = skeletonCache.get(sceneSkinnedMesh.skeleton);
+    if (!skeletonClone) {
+      skeletonClone = sceneSkinnedMesh.skeleton.clone(true);
+      skeletonCache.set(sceneSkinnedMesh.skeleton, skeletonClone);
+    }
+    savedSkinnedMesh.skeleton = skeletonClone;
+  }
+  model.saved = saved; */
+
+  model.export = () => new Promise((accept, reject) => {
+    new THREE.GLTFExporter().parse(saved, ab => {
+      accept(ab);
+    }, {
+      binary: true,
+    });
+  });
 };
 const _loadModelFilesystem = async filesystem => {
   const manager = new THREE.LoadingManager();
@@ -104,6 +144,7 @@ const loadModelUrl = async (href, filename = href) => {
     const model = await new Promise((accept, reject) => {
       new THREE.GLTFLoader().load(href, accept, xhr => {}, reject);
     });
+    _patchModel(model);
     return model;
   } else if (fileType === 'fbx') {
     const model = await new Promise((accept, reject) => {
@@ -111,6 +152,7 @@ const loadModelUrl = async (href, filename = href) => {
         accept({scene});
       }, xhr => {}, reject);
     });
+    _patchModel(model);
     return model;
   } else if (fileType === 'zip') {
     const unitypackageRes = await fetch(href);
@@ -143,6 +185,7 @@ const loadModelUrl = async (href, filename = href) => {
     // console.log('got filesystem', filesystem);
 
     const model = await _loadModelFilesystem(filesystem);
+    _patchModel(model);
     return model;
   } else if (fileType === 'tgz') {
     const unitypackageRes = await fetch(href);
@@ -174,6 +217,7 @@ const loadModelUrl = async (href, filename = href) => {
       }
     }
     const model = await _loadModelFilesystem(filesystem);
+    _patchModel(model);
     return model;
   } else if (fileType === 'img') {
     const img = await new Promise((accept, reject) => {
@@ -196,6 +240,7 @@ const loadModelUrl = async (href, filename = href) => {
         o.material.map = texture;
       }
     });
+    _patchModel(model);
     return model;
   } else {
     throw new Error(`unknown file type: ${filename} (${fileType})`);
