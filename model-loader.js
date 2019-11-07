@@ -34,8 +34,19 @@ const _filename2Ext = filename => {
   return match ? match[1] : null;
 };
 const _patchModel = model => {
-  const saved = THREE.SkeletonUtils.clone(model.scene);
+  model.scene.traverse(o => {
+    if (o.isMesh) {
+      const materials = Array.isArray(o.material) ? o.material : [o.material];
+      for (let i = 0; i < materials.length; i++) {
+        const material = materials[i];
+        if (material.map && !material.map.image) {
+          material.map = null;
+        }
+      }
+    }
+  });
 
+  const saved = THREE.SkeletonUtils.clone(model.scene);
   model.export = () => new Promise((accept, reject) => {
     new THREE.GLTFExporter().parse(saved, ab => {
       accept(ab);
