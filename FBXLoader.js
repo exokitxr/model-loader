@@ -926,11 +926,11 @@ THREE.FBXLoader = ( function () {
 
 							// In cases where a bone is shared between multiple meshes
 							// duplicate the bone here and and it as a child of the first bone
-							if ( subBone !== null ) {
+							/* if ( subBone !== null ) {
 
 								bone.add( subBone );
 
-							}
+							} */
 
 						}
 
