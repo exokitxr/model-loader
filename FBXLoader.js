@@ -384,7 +384,8 @@ THREE.FBXLoader = ( function () {
 				if ( loader === null ) {
 
 					console.warn( 'FBXLoader: TGA loader not found, creating placeholder texture for', textureNode.RelativeFilename );
-					texture = new THREE.Texture();
+					// texture = new THREE.Texture();
+					texture = this.textureLoader.load( fileName );
 
 				} else {
 
@@ -395,7 +396,8 @@ THREE.FBXLoader = ( function () {
 			} else if ( extension === 'psd' ) {
 
 				console.warn( 'FBXLoader: PSD textures are not supported, creating placeholder texture for', textureNode.RelativeFilename );
-				texture = new THREE.Texture();
+				// texture = new THREE.Texture();
+				texture = this.textureLoader.load( fileName );
 
 			} else {
 
